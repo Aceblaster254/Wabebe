@@ -1,0 +1,59 @@
+.promise {
+  background: var(--green);
+  color: var(--paper);
+  padding: 80px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.promise::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  left: -80px;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(201, 123, 30, 0.22), transparent 70%);
+  border-radius: 50%;
+}
+
+.promise::after {
+  content: "";
+  position: absolute;
+  bottom: -160px;
+  right: -100px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(20, 82, 57, 0.6), transparent 70%);
+  border-radius: 50%;
+}
+
+.promise-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.promise-quote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(28px, 4.4vw, 44px);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  margin-bottom: 24px;
+}
+
+.promise-quote span {
+  color: var(--amber);
+  font-style: normal;
+}
+
+.promise-sub {
+  font-size: 15px;
+  color: rgba(250, 247, 241, 0.7);
+  max-width: 460px;
+  margin: 0 auto;
+}

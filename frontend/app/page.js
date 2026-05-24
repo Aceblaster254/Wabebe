@@ -2,6 +2,8 @@ import Hero from '@/components/Hero';
 import BookingCard from '@/components/BookingCard';
 import StatusStrip from '@/components/StatusStrip';
 import PopularRoutes from '@/components/PopularRoutes';
+import HowItWorks from '@/components/HowItWorks';
+import Promise from '@/components/Promise';
 import './home.css';
 
 export default function HomePage() {
@@ -18,6 +20,10 @@ export default function HomePage() {
       <StatusStrip />
 
       <PopularRoutes />
+
+      <HowItWorks />
+
+      <Promise />
     </main>
   );
 }

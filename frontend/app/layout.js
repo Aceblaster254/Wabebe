@@ -1,5 +1,6 @@
 import './globals.css';
 import Nav from '@/components/Nav';
+import Footer from '@/components/Footer';
 
 export const metadata = {
   title: 'Wabebe — Reserve your seat. Track your bus.',
@@ -12,6 +13,7 @@ export default function RootLayout({ children }) {
       <body>
         <Nav />
         {children}
+        <Footer />
       </body>
     </html>
   );

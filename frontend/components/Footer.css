@@ -1,0 +1,94 @@
+.footer {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 60px 20px 28px;
+}
+
+.foot-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 48px;
+}
+
+.foot-brand .logo {
+  color: var(--paper);
+}
+
+.foot-brand .logo-mark {
+  background: var(--amber);
+  color: var(--ink);
+}
+
+.foot-tag {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: rgba(250, 247, 241, 0.65);
+  margin-top: 14px;
+  max-width: 280px;
+  line-height: 1.45;
+}
+
+.foot-col h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(250, 247, 241, 0.5);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.foot-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.foot-col a {
+  font-size: 14px;
+  color: rgba(250, 247, 241, 0.85);
+  transition: color 0.15s ease;
+}
+
+.foot-col a:hover {
+  color: var(--amber);
+}
+
+.foot-bottom {
+  max-width: 1240px;
+  margin: 48px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(250, 247, 241, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: rgba(250, 247, 241, 0.45);
+}
+
+.foot-bottom-right {
+  display: flex;
+  gap: 20px;
+}
+
+.whatsapp-link {
+  color: var(--amber);
+}
+
+@media (max-width: 760px) {
+  .foot-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .foot-inner {
+    grid-template-columns: 1fr;
+  }
+}
