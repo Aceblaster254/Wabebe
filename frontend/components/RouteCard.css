@@ -1,0 +1,74 @@
+.route-card {
+  background: var(--paper);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: background 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  min-height: 140px;
+}
+
+.route-card:hover {
+  background: var(--white);
+}
+
+.route-num {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.route-path {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  flex-wrap: wrap;
+}
+
+.route-path-arrow {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.route-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: auto;
+}
+
+.route-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.route-seats {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(11, 61, 46, 0.08);
+  color: var(--green);
+}
+
+.route-seats.low {
+  background: rgba(201, 123, 30, 0.12);
+  color: var(--amber);
+}
