@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables — secrets must never be committed
+.env.local
+.env*.local
+**/.env.local
+**/.env*.local
+
+# Next.js build output
+.next/
+**/.next/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Test outputs
+coverage/
+
+# TypeScript (just in case)
+*.tsbuildinfo
+next-env.d.ts
