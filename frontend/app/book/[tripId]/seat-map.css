@@ -1,0 +1,435 @@
+/* ============ PAGE LAYOUT ============ */
+.seat-map-page {
+  min-height: calc(100vh - 80px);
+  background: var(--paper);
+  padding-bottom: 140px; /* room for sticky summary */
+}
+
+.sm-loading,
+.sm-error {
+  max-width: 600px;
+  margin: 120px auto;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.sm-loading {
+  color: var(--muted);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+}
+
+.sm-error h1 {
+  font-family: var(--serif);
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.sm-error p {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.sm-back-home {
+  display: inline-block;
+  padding: 10px 22px;
+  background: var(--green);
+  color: var(--paper);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ============ HEADER ============ */
+.sm-header {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  padding: 24px 20px 28px;
+}
+
+.sm-header-inner {
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.sm-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  transition: color 0.15s ease, gap 0.15s ease;
+}
+
+.sm-back:hover {
+  color: var(--green);
+  gap: 10px;
+}
+
+.sm-trip-route {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.sm-trip-meta {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.sm-trip-meta strong {
+  font-weight: 600;
+}
+
+.sm-dot {
+  margin: 0 8px;
+  color: var(--muted);
+}
+
+/* ============ TITLE + LEGEND ============ */
+.sm-title-block {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 32px 20px 20px;
+}
+
+.sm-title {
+  font-family: var(--serif);
+  font-size: clamp(28px, 4.4vw, 36px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
+.sm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sm-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sm-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid;
+}
+
+.sw-available {
+  background: #C0DD97;
+  border-color: #3B6D11;
+}
+
+.sw-selected {
+  background: rgba(11, 61, 46, 0.15);
+  border-color: var(--green);
+}
+
+.sw-booked {
+  background: var(--paper-2);
+  border-color: var(--line);
+  opacity: 0.7;
+}
+
+.sw-conductor {
+  background: #FAC775;
+  border-color: #BA7517;
+}
+
+/* ============ BUS DIAGRAM ============ */
+.sm-bus {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.sm-bus-inner {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px 20px;
+}
+
+.sm-bus-front {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8px 16px;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px dashed var(--line);
+  margin-bottom: 16px;
+}
+
+.sm-bus-rear {
+  text-align: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sm-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.sm-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.sm-row-cockpit {
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--line);
+  margin-bottom: 6px;
+}
+
+.sm-row-back {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+
+.sm-aisle {
+  width: 22px;
+}
+
+.sm-spacer-wide {
+  width: 16px;
+}
+
+.sm-driver {
+  width: 46px;
+  height: 46px;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+/* ============ SEAT BUTTONS ============ */
+.sm-seat {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease;
+  font-family: inherit;
+}
+
+.sm-seat:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.sm-seat:disabled {
+  cursor: not-allowed;
+}
+
+.sm-seat-available {
+  background: #C0DD97;
+  border-color: #3B6D11;
+  color: #173404;
+}
+
+.sm-seat-available:hover {
+  background: #B0CE82;
+  box-shadow: 0 2px 6px rgba(59, 109, 17, 0.25);
+}
+
+.sm-seat-booked {
+  background: var(--paper-2);
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.sm-seat-held {
+  background: var(--paper-2);
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.sm-seat-conductor,
+.sm-seat-type-conductor {
+  background: #FAC775;
+  border-color: #BA7517;
+  color: #633806;
+}
+
+/* Selected — overrides everything */
+.sm-seat-selected {
+  background: var(--green) !important;
+  border-color: var(--green) !important;
+  color: var(--paper) !important;
+  box-shadow: 0 0 0 3px rgba(11, 61, 46, 0.18);
+  transform: scale(1.04);
+}
+
+/* ============ SUMMARY / STICKY CTA ============ */
+.sm-summary {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-top: 1px solid var(--line);
+  padding: 16px 20px;
+  box-shadow: 0 -8px 24px -12px rgba(14, 27, 23, 0.15);
+  z-index: 10;
+}
+
+.sm-summary-empty {
+  max-width: 540px;
+  margin: 0 auto;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+.sm-summary-active {
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.sm-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sm-summary-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.sm-summary-seat {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.sm-hold-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(11, 61, 46, 0.08);
+  color: var(--green);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sm-summary-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.sm-btn-cancel {
+  flex: 0 0 auto;
+  padding: 14px 22px;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.sm-btn-confirm {
+  flex: 1;
+  padding: 14px 18px;
+  background: var(--green);
+  color: var(--paper);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sm-btn-confirm:hover:not(:disabled) {
+  background: var(--green-2);
+}
+
+.sm-btn-confirm:disabled,
+.sm-btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* ============ DOOR PLACEHOLDER ============ */
+
+/* Empty seat slot where the door is */
+.sm-seat-gap {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  border: 1.5px dashed rgba(218, 210, 191, 0.5);
+  background: transparent;
+}
+
+/* Highlight the gap on row 3 (the mid-door row) with a striped pattern */
+.sm-row:nth-child(3) .sm-seat-gap {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(201, 123, 30, 0.08) 4px,
+    rgba(201, 123, 30, 0.08) 8px
+  );
+  position: relative;
+}
+
+/* Add a tiny "door" label between the door placeholders */
+.sm-row:nth-child(3) .sm-seat-gap:first-of-type::after {
+  content: "door";
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translate(-2px, -50%);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--amber);
+  font-weight: 600;
+  white-space: nowrap;
+  padding-left: 4px;
+  pointer-events: none;
+}
