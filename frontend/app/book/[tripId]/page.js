@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import './seat-map.css';
@@ -20,7 +20,10 @@ function getSessionId() {
 export default function SeatMapPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const tripId = params.tripId;
+  const boardingStopId = searchParams.get('boarding');
+  const alightingStopId = searchParams.get('alighting');
 
   const [trip, setTrip] = useState(null);
   const [seats, setSeats] = useState([]);
@@ -185,7 +188,10 @@ export default function SeatMapPage() {
 
   function continueToConfirm() {
     if (!selectedSeat) return;
-    router.push(`/book/${tripId}/confirm?seat=${selectedSeat}`);
+    const params = new URLSearchParams({ seat: selectedSeat });
+    if (boardingStopId) params.append('boarding', boardingStopId);
+    if (alightingStopId) params.append('alighting', alightingStopId);
+    router.push(`/book/${tripId}/confirm?${params.toString()}`);
   }
 
   // ===== Render =====

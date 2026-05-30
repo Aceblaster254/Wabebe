@@ -18,6 +18,8 @@ export default function ConfirmPage() {
 
   const tripId = params.tripId;
   const seatId = searchParams.get('seat');
+  const boardingStopId = searchParams.get('boarding');
+  const alightingStopId = searchParams.get('alighting');
 
   const [trip, setTrip] = useState(null);
   const [holdExpiresAt, setHoldExpiresAt] = useState(null);
@@ -129,7 +131,9 @@ export default function ConfirmPage() {
         p_seat_id: seatId,
         p_session_id: getSessionId(),
         p_passenger_name: name.trim(),
-        p_passenger_phone: cleaned
+        p_passenger_phone: cleaned,
+        p_boarding_stop_id: boardingStopId,
+        p_alighting_stop_id: alightingStopId
       }
     );
 

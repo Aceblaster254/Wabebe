@@ -129,3 +129,259 @@
     font-size: 16px;
   }
 }
+
+/* ============ STOP PICKER MODAL ============ */
+.sp-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 27, 23, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  padding: 0;
+  animation: spFade 0.15s ease;
+}
+
+@keyframes spFade { from { opacity: 0; } to { opacity: 1; } }
+
+.sp-modal {
+  background: var(--paper);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 20px 20px 0 0;
+  padding: 14px 24px 28px;
+  animation: spSlide 0.22s ease;
+}
+
+@keyframes spSlide {
+  from { transform: translateY(40px); }
+  to { transform: none; }
+}
+
+.sp-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--line);
+  border-radius: 999px;
+  margin: 0 auto 18px;
+}
+
+.sp-title {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+
+.sp-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 22px;
+}
+
+.sp-field {
+  margin-bottom: 18px;
+}
+
+.sp-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.sp-optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* === Combo input (the input + dropdown) === */
+.sp-combo {
+  position: relative;
+}
+
+.sp-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.sp-input::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.sp-input:focus {
+  border-color: var(--green);
+}
+
+
+/* Clear button inside the combo input */
+.sp-clear {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: var(--paper-2);
+  color: var(--muted);
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: inherit;
+}
+
+.sp-clear:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+/* Make room on the right for the clear button */
+.sp-input {
+  padding-right: 44px;
+}
+
+/* === Dropdown of stop options === */
+.sp-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px -12px rgba(14, 27, 23, 0.2);
+  z-index: 10;
+  padding: 6px;
+}
+
+.sp-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.sp-option:hover {
+  background: var(--paper-2);
+}
+
+.sp-option-selected {
+  background: rgba(11, 61, 46, 0.08);
+  font-weight: 500;
+}
+
+.sp-stop-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: var(--paper-2);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.sp-option-selected .sp-stop-num {
+  background: var(--green);
+  color: var(--paper);
+}
+
+.sp-stop-name {
+  flex: 1;
+}
+
+.sp-no-match {
+  padding: 14px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  font-style: italic;
+}
+
+.sp-empty {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  padding: 12px;
+  background: var(--paper-2);
+  border-radius: 10px;
+  text-align: center;
+}
+
+/* === Action buttons === */
+.sp-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 8px;
+}
+
+.sp-cancel {
+  flex: 0 0 auto;
+  padding: 14px 20px;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sp-confirm {
+  flex: 1;
+  padding: 14px;
+  background: var(--green);
+  color: var(--paper);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.sp-confirm:hover { background: var(--green-2); }

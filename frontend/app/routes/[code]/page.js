@@ -167,7 +167,12 @@ export default function RouteDetailPage() {
           ) : (
             <div className="rd-trips-list">
               {trips.map(trip => (
-                <TripRow key={trip.trip_id} trip={trip} />
+                <TripRow
+                  key={trip.trip_id}
+                  trip={trip}
+                  stops={stops.map((s, i) => ({ ...s, sequence: i + 1 }))}
+                  originStopId={stops[0]?.id}
+                />
               ))}
             </div>
           )}
