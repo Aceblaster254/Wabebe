@@ -390,6 +390,16 @@ export default function ConductorPage() {
               </div>
             </div>
 
+            {(actionBooking.boarding_stop_name || actionBooking.boarding_label_user || actionBooking.boarding_label_auto) && (
+              <div className="cd-sheet-boarding">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>Boarding at <strong>{actionBooking.boarding_stop_name || actionBooking.boarding_label_user || actionBooking.boarding_label_auto}</strong></span>
+              </div>
+            )}
+
             <div className={`cd-sheet-status cd-sheet-status-${actionBooking.status}`}>
               {actionBooking.status === 'confirmed' && 'Waiting to board'}
               {actionBooking.status === 'boarded' && 'Boarded ✓'}
@@ -511,6 +521,13 @@ function ConductorSeat({ seat, onTap }) {
 function PassengerRow({ booking, onTap }) {
   const isActionable = booking.status === 'confirmed';
 
+  // Resolve boarding label: official stop name, user-typed, or auto-geocoded
+  const boardingLabel =
+    booking.boarding_stop_name
+    || booking.boarding_label_user
+    || booking.boarding_label_auto
+    || null;
+
   return (
     <div
       className={`cd-prow cd-prow-${booking.status} ${isActionable ? 'cd-prow-actionable' : ''}`}
@@ -520,6 +537,15 @@ function PassengerRow({ booking, onTap }) {
       <div className="cd-prow-info">
         <div className="cd-prow-name">{booking.passenger_name}</div>
         <div className="cd-prow-phone">{booking.passenger_phone}</div>
+        {boardingLabel && (
+          <div className="cd-prow-boarding">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            {boardingLabel}
+          </div>
+        )}
       </div>
       <div className="cd-prow-status">
         {booking.status === 'confirmed' && 'Pending'}

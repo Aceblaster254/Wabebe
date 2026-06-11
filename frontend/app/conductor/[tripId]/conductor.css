@@ -604,3 +604,41 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .cd-modal-actions .cd-btn-primary { border-color: var(--green); }
 .cd-modal-actions .cd-btn-danger { border-color: #8C1F1F; }
+
+
+.cd-prow-boarding {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--green);
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+.cd-prow-boarding svg {
+  flex-shrink: 0;
+}
+
+.cd-sheet-boarding {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(11, 61, 46, 0.06);
+  border: 1px solid rgba(11, 61, 46, 0.15);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+
+.cd-sheet-boarding svg {
+  flex-shrink: 0;
+  color: var(--green);
+}
+
+.cd-sheet-boarding strong {
+  color: var(--ink);
+  font-weight: 600;
+}

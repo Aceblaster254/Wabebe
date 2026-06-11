@@ -22,9 +22,17 @@ export default function SeatMapPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tripId = params.tripId;
-  const boardingStopId = searchParams.get('boarding');
-  const alightingStopId = searchParams.get('alighting');
-
+  // Forwarded from stop picker — either stop ID or pin data
+  const boardingStopId = searchParams.get('boarding_stop');
+  const alightingStopId = searchParams.get('alighting_stop');
+  const boardingLat = searchParams.get('boarding_lat');
+  const boardingLng = searchParams.get('boarding_lng');
+  const boardingLabelAuto = searchParams.get('boarding_label_auto');
+  const boardingLabelUser = searchParams.get('boarding_label_user');
+  const alightingLat = searchParams.get('alighting_lat');
+  const alightingLng = searchParams.get('alighting_lng');
+  const alightingLabelAuto = searchParams.get('alighting_label_auto');
+  const alightingLabelUser = searchParams.get('alighting_label_user');
   const [trip, setTrip] = useState(null);
   const [seats, setSeats] = useState([]);
   const [selectedSeat, setSelectedSeat] = useState(null);
@@ -189,8 +197,23 @@ export default function SeatMapPage() {
   function continueToConfirm() {
     if (!selectedSeat) return;
     const params = new URLSearchParams({ seat: selectedSeat });
-    if (boardingStopId) params.append('boarding', boardingStopId);
-    if (alightingStopId) params.append('alighting', alightingStopId);
+
+    if (boardingStopId) params.append('boarding_stop', boardingStopId);
+    if (boardingLat && boardingLng) {
+      params.append('boarding_lat', boardingLat);
+      params.append('boarding_lng', boardingLng);
+      if (boardingLabelAuto) params.append('boarding_label_auto', boardingLabelAuto);
+      if (boardingLabelUser) params.append('boarding_label_user', boardingLabelUser);
+    }
+
+    if (alightingStopId) params.append('alighting_stop', alightingStopId);
+    if (alightingLat && alightingLng) {
+      params.append('alighting_lat', alightingLat);
+      params.append('alighting_lng', alightingLng);
+      if (alightingLabelAuto) params.append('alighting_label_auto', alightingLabelAuto);
+      if (alightingLabelUser) params.append('alighting_label_user', alightingLabelUser);
+    }
+
     router.push(`/book/${tripId}/confirm?${params.toString()}`);
   }
 

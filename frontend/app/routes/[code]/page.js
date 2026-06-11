@@ -172,6 +172,7 @@ export default function RouteDetailPage() {
                   trip={trip}
                   stops={stops.map((s, i) => ({ ...s, sequence: i + 1 }))}
                   originStopId={stops[0]?.id}
+                  routeId={route?.id}
                 />
               ))}
             </div>

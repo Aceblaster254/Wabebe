@@ -18,8 +18,16 @@ export default function ConfirmPage() {
 
   const tripId = params.tripId;
   const seatId = searchParams.get('seat');
-  const boardingStopId = searchParams.get('boarding');
-  const alightingStopId = searchParams.get('alighting');
+  const boardingStopId = searchParams.get('boarding_stop');
+  const alightingStopId = searchParams.get('alighting_stop');
+  const boardingLat = searchParams.get('boarding_lat');
+  const boardingLng = searchParams.get('boarding_lng');
+  const boardingLabelAuto = searchParams.get('boarding_label_auto');
+  const boardingLabelUser = searchParams.get('boarding_label_user');
+  const alightingLat = searchParams.get('alighting_lat');
+  const alightingLng = searchParams.get('alighting_lng');
+  const alightingLabelAuto = searchParams.get('alighting_label_auto');
+  const alightingLabelUser = searchParams.get('alighting_label_user');
 
   const [trip, setTrip] = useState(null);
   const [holdExpiresAt, setHoldExpiresAt] = useState(null);
@@ -132,8 +140,16 @@ export default function ConfirmPage() {
         p_session_id: getSessionId(),
         p_passenger_name: name.trim(),
         p_passenger_phone: cleaned,
-        p_boarding_stop_id: boardingStopId,
-        p_alighting_stop_id: alightingStopId
+        p_boarding_stop_id: boardingStopId || null,
+        p_alighting_stop_id: alightingStopId || null,
+        p_boarding_lat: boardingLat ? parseFloat(boardingLat) : null,
+        p_boarding_lng: boardingLng ? parseFloat(boardingLng) : null,
+        p_boarding_label_user: boardingLabelUser || null,
+        p_boarding_label_auto: boardingLabelAuto || null,
+        p_alighting_lat: alightingLat ? parseFloat(alightingLat) : null,
+        p_alighting_lng: alightingLng ? parseFloat(alightingLng) : null,
+        p_alighting_label_user: alightingLabelUser || null,
+        p_alighting_label_auto: alightingLabelAuto || null
       }
     );
 

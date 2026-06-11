@@ -188,10 +188,21 @@ export default function BoardingPassPage() {
               <div className="bp-detail">
                 <div className="bp-detail-key">Boarding at</div>
                 <div className="bp-detail-val bp-boarding-stop">
-                  {booking.boarding_stop_name}
+                  {booking.boarding_stop_name
+                    || booking.boarding_label_user
+                    || booking.boarding_label_auto
+                    || 'Origin'}
                 </div>
-                {booking.alighting_stop_name && (
-                  <div className="bp-detail-sub">Getting off at {booking.alighting_stop_name}</div>
+                {booking.boarding_label_user && booking.boarding_label_auto && (
+                  <div className="bp-detail-sub">{booking.boarding_label_auto}</div>
+                )}
+                {(booking.alighting_stop_name || booking.alighting_label_user || booking.alighting_label_auto) && (
+                  <div className="bp-detail-sub" style={{ marginTop: 8 }}>
+                    Getting off at{' '}
+                    {booking.alighting_stop_name
+                      || booking.alighting_label_user
+                      || booking.alighting_label_auto}
+                  </div>
                 )}
               </div>
             </div>
