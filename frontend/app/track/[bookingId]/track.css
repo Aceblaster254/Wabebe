@@ -1,0 +1,317 @@
+.tk-page {
+  position: fixed;
+  inset: 0;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tk-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+}
+
+.tk-error {
+  max-width: 420px;
+  margin: 80px auto;
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.tk-error h1 {
+  font-family: var(--serif);
+  font-size: 26px;
+  color: var(--ink);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.tk-error p {
+  color: var(--muted);
+  margin-bottom: 22px;
+  font-size: 14px;
+}
+
+.tk-back {
+  display: inline-block;
+  padding: 12px 22px;
+  background: var(--green);
+  color: var(--paper);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ============ MAP ============ */
+.tk-map {
+  position: absolute;
+  inset: 0;
+  background: var(--paper-2);
+}
+
+/* ============ TOP BAR ============ */
+.tk-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(to bottom, var(--paper) 60%, transparent);
+  z-index: 5;
+}
+
+.tk-back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px -2px rgba(14, 27, 23, 0.15);
+  transition: background 0.15s ease;
+}
+
+.tk-back-btn:hover { background: var(--paper-2); }
+
+.tk-top-info {
+  flex: 1;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 2px 8px -2px rgba(14, 27, 23, 0.1);
+  min-width: 0;
+}
+
+.tk-top-route {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.tk-top-meta {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tk-top-meta em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* ============ BOTTOM PANEL ============ */
+.tk-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  padding: 18px 20px 22px;
+  z-index: 5;
+  box-shadow: 0 -8px 24px -16px rgba(14, 27, 23, 0.2);
+}
+
+.tk-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tk-status-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(11, 61, 46, 0.1);
+  color: var(--green);
+}
+
+.tk-status-text {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.tk-status-arriving .tk-status-icon {
+  background: rgba(201, 123, 30, 0.15);
+  color: var(--amber);
+  animation: tkPulse 1.4s ease-in-out infinite;
+}
+
+.tk-status-arriving .tk-status-text {
+  color: var(--amber);
+}
+
+@keyframes tkPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.tk-status-warn .tk-status-icon {
+  background: rgba(192, 50, 50, 0.1);
+  color: #8C1F1F;
+}
+
+.tk-status-warn .tk-status-text {
+  color: #8C1F1F;
+}
+
+.tk-status-done .tk-status-icon {
+  background: var(--paper-2);
+  color: var(--muted);
+}
+
+.tk-status-done .tk-status-text {
+  color: var(--muted);
+}
+
+.tk-status-waiting .tk-status-icon {
+  background: var(--paper-2);
+  color: var(--muted);
+}
+
+.tk-status-waiting .tk-status-text {
+  color: var(--ink-soft);
+  font-style: italic;
+  font-size: 17px;
+}
+
+.tk-boarding {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: rgba(201, 123, 30, 0.1);
+  border: 1px solid rgba(201, 123, 30, 0.25);
+  border-radius: 999px;
+  font-size: 12px;
+  color: #8B5A12;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+
+.tk-boarding strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.tk-late-btn {
+  position: relative;
+  width: 100%;
+  padding: 14px;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: not-allowed;
+  opacity: 0.7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tk-late-coming {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  background: var(--amber);
+  color: var(--paper);
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* ============ MAP MARKERS ============ */
+.tk-bus-marker {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+
+.tk-bus-dot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green);
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(14, 27, 23, 0.3);
+  z-index: 2;
+}
+
+.tk-bus-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: rgba(11, 61, 46, 0.3);
+  z-index: 1;
+  animation: tkBusPulse 1.6s ease-out infinite;
+}
+
+@keyframes tkBusPulse {
+  0% { transform: scale(0.7); opacity: 0.7; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.tk-passenger-marker {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* ============ MOBILE ============ */
+@media (max-width: 540px) {
+  .tk-status-text { font-size: 18px; }
+  .tk-top-info { padding: 8px 12px; }
+  .tk-top-meta { font-size: 13px; }
+}
+
+.tk-status-passed .tk-status-icon {
+  background: var(--paper-2);
+  color: var(--muted);
+}
+
+.tk-status-passed .tk-status-text {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 17px;
+}

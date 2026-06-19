@@ -83,3 +83,8 @@ select {
     transform: none;
   }
 }
+
+
+body[data-hide-nav="true"] nav.nav {
+  display: none;
+}
