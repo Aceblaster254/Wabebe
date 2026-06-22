@@ -108,54 +108,6 @@
 .cd-meta-val { color: var(--ink); font-weight: 500; }
 .cd-meta-val em { font-family: var(--serif); font-weight: 400; color: var(--muted); }
 
-.cd-sim {
-  background: rgba(201,123,30,0.08);
-  border: 1px dashed rgba(201,123,30,0.3);
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
-  font-size: 12px;
-}
-
-.cd-sim-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #B16D1A;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.cd-sim-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.cd-sim-at {
-  color: var(--ink-soft);
-  font-weight: 500;
-}
-
-.cd-sim-at em {
-  font-style: normal;
-  color: var(--amber);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  margin-left: 4px;
-}
-
-.cd-sim select {
-  flex: 1;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--white);
-  font-size: 13px;
-  color: var(--ink);
-  font-family: inherit;
-}
 
 .cd-controls {
   margin-bottom: 16px;
@@ -641,4 +593,176 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .cd-sheet-boarding strong {
   color: var(--ink);
   font-weight: 600;
+}
+
+/* ============ GPS BROADCASTING STATUS ============ */
+.cd-gps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.cd-gps-prompt {
+  background: rgba(11, 61, 46, 0.06);
+  border: 1px solid rgba(11, 61, 46, 0.2);
+  color: var(--ink);
+}
+
+.cd-gps-prompt .cd-gps-icon {
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.cd-gps-prompt .cd-gps-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cd-gps-prompt .cd-gps-text strong {
+  display: block;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.cd-gps-prompt .cd-gps-text p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.cd-gps-grant {
+  padding: 8px 16px;
+  background: var(--green);
+  color: var(--paper);
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.cd-gps-grant:hover { background: var(--green-2); }
+
+.cd-gps-denied {
+  background: rgba(192, 50, 50, 0.08);
+  border: 1px solid rgba(192, 50, 50, 0.25);
+  color: #8C1F1F;
+}
+
+.cd-gps-denied .cd-gps-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.cd-gps-denied .cd-gps-text strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.cd-gps-denied .cd-gps-text p {
+  margin: 0;
+  font-size: 12px;
+  color: #8C1F1F;
+  opacity: 0.85;
+}
+
+.cd-gps-waiting,
+.cd-gps-active {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+}
+
+.cd-gps-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cd-gps-dot-waiting {
+  background: var(--muted);
+  animation: cdGpsBlink 1.2s ease-in-out infinite;
+}
+
+.cd-gps-dot-live {
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(11, 61, 46, 0.4);
+  animation: cdGpsPulse 1.6s ease-out infinite;
+}
+
+@keyframes cdGpsBlink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@keyframes cdGpsPulse {
+  0% { box-shadow: 0 0 0 0 rgba(11, 61, 46, 0.4); }
+  100% { box-shadow: 0 0 0 8px rgba(11, 61, 46, 0); }
+}
+
+.cd-gps-text-inline {
+  font-size: 12px;
+  color: var(--ink-soft);
+  flex: 1;
+}
+
+.cd-gps-text-inline strong {
+  color: var(--ink);
+  font-weight: 600;
+  margin: 0 2px;
+}
+
+.cd-gps-acc {
+  color: var(--muted);
+}
+
+.cd-gps-err {
+  color: #8C1F1F;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* ============ CURRENT STOP INDICATOR (auto-derived from GPS) ============ */
+.cd-current-stop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(11, 61, 46, 0.06);
+  border: 1px solid rgba(11, 61, 46, 0.2);
+  border-radius: 12px;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.cd-current-stop-icon {
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.cd-current-stop-text {
+  flex: 1;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.cd-current-stop-text strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.cd-current-stop-time {
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  margin-left: 4px;
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useGPSBroadcaster } from '@/hooks/useGPSBroadcaster';
 import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import './conductor.css';
@@ -126,17 +127,15 @@ export default function ConductorPage() {
     setActionBooking(null);
   }
 
-  async function handleSetStop(stopId) {
-    setBusy(true);
-    const { error } = await supabase.rpc('set_bus_stop', {
-      p_trip_id: tripId,
-      p_stop_id: stopId,
-      p_token: token
-    });
-    if (error) alert(`Could not set stop: ${error.message}`);
-    await loadView();
-    setBusy(false);
-  }
+  
+
+  // GPS broadcasting — active only when trip is in_transit
+  const tripInTransit = view?.trip?.status === 'in_transit';
+  const gps = useGPSBroadcaster({
+    tripId,
+    token,
+    active: tripInTransit
+  });
 
   if (loading) {
     return <main className="cd-page"><div className="cd-center">Loading conductor view…</div></main>;
@@ -227,26 +226,23 @@ export default function ConductorPage() {
           </div>
         </div>
 
-        {!isCompleted && (
-          <div className="cd-sim">
-            <div className="cd-sim-label">Dev simulator (GPS coming session 2)</div>
-            <div className="cd-sim-controls">
-              <span className="cd-sim-at">
-                {trip.current_stop_name ? `At: ${trip.current_stop_name}` : 'Bus not at a stop'}
-                {trip.current_stop_arrived_at && (
-                  <em> · {Math.floor(secondsAtStop/60)}:{String(secondsAtStop%60).padStart(2,'0')}</em>
-                )}
-              </span>
-              <select
-                value={trip.current_stop_id || ''}
-                onChange={(e) => handleSetStop(e.target.value)}
-                disabled={busy}
-              >
-                <option value="">Set bus location…</option>
-                {stops?.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
+        {tripInTransit && <GPSStatus gps={gps} />}
+
+        {tripInTransit && trip.current_stop_name && (
+          <div className="cd-current-stop">
+            <div className="cd-current-stop-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+            <div className="cd-current-stop-text">
+              At <strong>{trip.current_stop_name}</strong>
+              {trip.current_stop_arrived_at && (
+                <span className="cd-current-stop-time">
+                  · {Math.floor(secondsAtStop/60)}:{String(secondsAtStop%60).padStart(2,'0')}
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -556,3 +552,75 @@ function PassengerRow({ booking, onTap }) {
     </div>
   );
 }
+
+function GPSStatus({ gps }) {
+  const { permission, broadcasting, lastPing, error, isMoving, requestPermission } = gps;
+
+  // First-time: ask for permission
+  if (permission === 'prompt' || permission === 'unknown') {
+    return (
+      <div className="cd-gps cd-gps-prompt">
+        <div className="cd-gps-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+        </div>
+        <div className="cd-gps-text">
+          <strong>Share location with passengers</strong>
+          <p>So they can see when the bus is approaching their stop.</p>
+        </div>
+        <button onClick={requestPermission} className="cd-gps-grant">Allow</button>
+      </div>
+    );
+  }
+
+  // Denied: explain how to fix
+  if (permission === 'denied') {
+    return (
+      <div className="cd-gps cd-gps-denied">
+        <div className="cd-gps-icon">⚠</div>
+        <div className="cd-gps-text">
+          <strong>Location is blocked</strong>
+          <p>Open browser site settings and allow location, then refresh.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Granted but not yet broadcasting (waiting for first fix)
+  if (!broadcasting && !lastPing) {
+    return (
+      <div className="cd-gps cd-gps-waiting">
+        <div className="cd-gps-dot cd-gps-dot-waiting"></div>
+        <div className="cd-gps-text-inline">Waiting for GPS…</div>
+      </div>
+    );
+  }
+
+  // Active broadcasting
+  const secsSince = lastPing ? Math.round((Date.now() - lastPing.ts) / 1000) : null;
+  const ageText = secsSince === null
+    ? '—'
+    : secsSince < 60
+      ? `${secsSince}s ago`
+      : `${Math.round(secsSince / 60)}m ago`;
+
+  return (
+    <div className="cd-gps cd-gps-active">
+      <div className="cd-gps-dot cd-gps-dot-live"></div>
+      <div className="cd-gps-text-inline">
+        Broadcasting · <strong>{isMoving ? 'moving' : 'idle'}</strong> · last sent {ageText}
+        {lastPing?.accuracy_m && (
+          <span className="cd-gps-acc"> · {Math.round(lastPing.accuracy_m)}m accuracy</span>
+        )}
+      </div>
+      {error && <span className="cd-gps-err" title={error}>⚠</span>}
+    </div>
+  );
+}
+
+
