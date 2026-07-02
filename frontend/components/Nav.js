@@ -12,6 +12,7 @@ export default function Nav() {
 
         <div className="nav-links">
           <Link href="/routes">Routes</Link>
+          <Link href="/my-bookings">My bookings</Link>
           <Link href="/help">Help</Link>
 
           <span className="nav-lang">

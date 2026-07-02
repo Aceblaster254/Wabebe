@@ -17,7 +17,7 @@ export default function Footer() {
           <h4>Riders</h4>
           <ul>
             <li><Link href="/routes">All routes</Link></li>
-            <li><Link href="/account">My bookings</Link></li>
+            <li><Link href="/my-bookings">My bookings</Link></li>
             <li><Link href="/help">Help & FAQ</Link></li>
             <li><Link href="/lost-found">Lost & Found</Link></li>
           </ul>

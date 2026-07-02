@@ -1,0 +1,138 @@
+.lf-form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-top: 20px;
+}
+
+.lf-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lf-section-title {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.lf-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.lf-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.lf-optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.lf-input,
+.lf-textarea {
+  padding: 12px 14px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--ink);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.lf-input::placeholder,
+.lf-textarea::placeholder {
+  color: var(--muted);
+}
+
+.lf-input:focus,
+.lf-textarea:focus {
+  border-color: var(--green);
+}
+
+.lf-textarea {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.5;
+}
+
+.lf-input-ref,
+.lf-input-seat {
+  font-family: var(--serif);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lf-input-seat {
+  max-width: 100px;
+}
+
+.lf-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.lf-error {
+  background: rgba(192, 50, 50, 0.08);
+  border: 1px solid rgba(192, 50, 50, 0.25);
+  color: #8C1F1F;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lf-submit {
+  padding: 14px;
+  background: var(--green);
+  color: var(--paper);
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.lf-submit:hover:not(:disabled) {
+  background: var(--green-2);
+}
+
+.lf-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lf-fine-print {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  font-style: italic;
+  text-align: center;
+  margin: 4px 0 0;
+}
+
+@media (max-width: 540px) {
+  .lf-input-seat { max-width: 120px; }
+}

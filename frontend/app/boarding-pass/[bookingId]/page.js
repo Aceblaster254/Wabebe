@@ -286,6 +286,12 @@ export default function BoardingPassPage() {
         <div className="bp-help">
           Need help? <a href="https://wa.me/254700000000" className="bp-help-link">Message us on WhatsApp</a>
         </div>
+
+        <div className="bp-recover-hint">
+          Save your reference. You can look up this booking later from{' '}
+          <Link href="/my-bookings" className="bp-recover-link">My bookings</Link>.
+        </div>
+
       </div>
     </main>
   );

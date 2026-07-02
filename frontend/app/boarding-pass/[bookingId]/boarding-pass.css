@@ -501,3 +501,15 @@
 
   .bp-actions { flex-direction: column; }
 }
+
+.bp-recover-link {
+  color: var(--green);
+  font-style: normal;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bp-recover-link:hover {
+  color: var(--green-2);
+}

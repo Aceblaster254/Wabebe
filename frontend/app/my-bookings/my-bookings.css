@@ -1,0 +1,432 @@
+.mb-page {
+  min-height: 100vh;
+  background: var(--paper);
+  padding: 40px 20px 80px;
+}
+
+/* ============ LOCKED STATE (LOOKUP FORM) ============ */
+.mb-locked {
+  max-width: 460px;
+  margin: 60px auto 0;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 36px 32px;
+}
+
+.mb-title {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.mb-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 26px;
+}
+
+.mb-sub-tight {
+  margin-bottom: 16px;
+}
+
+.mb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mb-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.mb-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.mb-input {
+  padding: 12px 14px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--ink);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.mb-input::placeholder {
+  color: var(--muted);
+}
+
+.mb-input:focus {
+  border-color: var(--green);
+}
+
+.mb-input-ref {
+  font-family: var(--serif);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mb-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.mb-error {
+  background: rgba(192, 50, 50, 0.08);
+  border: 1px solid rgba(192, 50, 50, 0.25);
+  color: #8C1F1F;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.mb-submit {
+  padding: 14px;
+  background: var(--green);
+  color: var(--paper);
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+  margin-top: 4px;
+}
+
+.mb-submit:hover:not(:disabled) {
+  background: var(--green-2);
+}
+
+.mb-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mb-help {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.mb-help p {
+  margin: 0;
+}
+
+/* ============ UNLOCKED STATE (BOOKINGS LIST) ============ */
+.mb-unlocked {
+  max-width: 640px;
+  margin: 20px auto 0;
+}
+
+.mb-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.mb-signout {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 8px 0;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+.mb-signout:hover {
+  color: var(--ink);
+  text-decoration-color: var(--green);
+}
+
+.mb-filter {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--paper-2);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.mb-filter-btn {
+  padding: 8px 18px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mb-filter-btn:hover {
+  color: var(--ink);
+}
+
+.mb-filter-active {
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(14, 27, 23, 0.08);
+}
+
+.mb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mb-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.mb-empty p {
+  margin-bottom: 20px;
+  font-style: italic;
+  font-family: var(--serif);
+  font-size: 17px;
+}
+
+.mb-book-cta {
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--green);
+  color: var(--paper);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.mb-book-cta:hover {
+  background: var(--green-2);
+}
+
+/* ============ BOOKING ROW ============ */
+.mb-row {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s ease;
+}
+
+.mb-row:hover {
+  border-color: var(--green);
+}
+
+.mb-row-cancelled {
+  opacity: 0.7;
+}
+
+.mb-row-cancelled .mb-row-route {
+  text-decoration: line-through;
+  text-decoration-color: rgba(192, 50, 50, 0.4);
+}
+
+.mb-row-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.mb-row-code {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mb-row-name {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.mb-row-status {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.mb-status-upcoming {
+  background: rgba(11, 61, 46, 0.1);
+  color: var(--green);
+}
+
+.mb-status-soon {
+  background: rgba(201, 123, 30, 0.15);
+  color: var(--amber);
+}
+
+.mb-status-transit {
+  background: var(--green);
+  color: var(--paper);
+}
+
+.mb-status-boarded {
+  background: var(--green);
+  color: var(--paper);
+}
+
+.mb-status-done {
+  background: var(--paper-2);
+  color: var(--muted);
+}
+
+.mb-status-cancelled {
+  background: rgba(192, 50, 50, 0.1);
+  color: #8C1F1F;
+}
+
+.mb-status-noshow {
+  background: rgba(192, 50, 50, 0.1);
+  color: #8C1F1F;
+}
+
+.mb-row-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  flex-wrap: wrap;
+}
+
+.mb-row-meta strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.mb-row-bus {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.mb-row-bus em {
+  font-family: var(--serif);
+  font-style: italic;
+}
+
+.mb-row-boarding {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(201, 123, 30, 0.08);
+  border: 1px solid rgba(201, 123, 30, 0.2);
+  border-radius: 999px;
+  font-size: 11px;
+  color: #8B5A12;
+  font-weight: 500;
+  align-self: flex-start;
+}
+
+.mb-row-boarding svg {
+  flex-shrink: 0;
+  color: var(--amber);
+}
+
+.mb-row-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.mb-action-primary,
+.mb-action-secondary {
+  flex: 1;
+  min-width: 130px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.mb-action-primary {
+  background: var(--green);
+  color: var(--paper);
+  border: 1px solid var(--green);
+}
+
+.mb-action-primary:hover {
+  background: var(--green-2);
+}
+
+.mb-action-secondary {
+  background: var(--paper);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.mb-action-secondary:hover {
+  background: rgba(11, 61, 46, 0.05);
+}
+
+.mb-row-ref {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--serif);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.mb-row-ref code {
+  font-family: var(--serif);
+  letter-spacing: 0.05em;
+  background: var(--paper-2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+@media (max-width: 540px) {
+  .mb-page { padding: 20px 14px 80px; }
+  .mb-locked { padding: 26px 22px; margin-top: 30px; }
+  .mb-title { font-size: 24px; }
+  .mb-row { padding: 14px 16px; }
+  .mb-action-primary, .mb-action-secondary {
+    min-width: auto;
+    padding: 12px 14px;
+  }
+}
