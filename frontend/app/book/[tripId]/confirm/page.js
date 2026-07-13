@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { getSessionToken } from '@/lib/auth/session';
 import './confirm.css';
 
 function getSessionId() {
@@ -11,13 +13,25 @@ function getSessionId() {
   return localStorage.getItem('wabebe_session_id');
 }
 
+function formatPhoneKE(phone) {
+  if (!phone) return '';
+  const p = phone.startsWith('+254') ? '0' + phone.slice(4) : phone;
+  if (p.startsWith('0') && p.length === 10) {
+    return `${p.slice(0, 4)} ${p.slice(4, 7)} ${p.slice(7)}`;
+  }
+  return phone;
+}
+
 export default function ConfirmPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const tripId = params.tripId;
-  const seatId = searchParams.get('seat');
+  // Parse seat param — could be "2A" or "2A,2B"
+  const seatIds = (searchParams.get('seat') || '').split(',').filter(Boolean);
+
   const boardingStopId = searchParams.get('boarding_stop');
   const alightingStopId = searchParams.get('alighting_stop');
   const boardingLat = searchParams.get('boarding_lat');
@@ -35,27 +49,46 @@ export default function ConfirmPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  // Passenger forms — one per seat
+  // passengers[i] = { name, phone, bookingForSelf }
+  const [passengers, setPassengers] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState(null);
 
-  // Load trip details and verify the hold
+  const [anonBookingCount, setAnonBookingCount] = useState(0);
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
+
+  const isSignedIn = !!user;
+  const isMulti = seatIds.length > 1;
+
+  // Initialize passenger forms based on seat count
   useEffect(() => {
-    if (!tripId || !seatId) {
+    if (seatIds.length === 0) return;
+    setPassengers(prev => {
+      if (prev.length === seatIds.length) return prev;
+      return seatIds.map((_, i) => ({
+        name: '',
+        phone: '',
+        // First passenger books for self by default (if signed in)
+        bookingForSelf: i === 0 && isSignedIn
+      }));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seatIds.length, isSignedIn]);
+
+  // Load trip + verify holds
+  useEffect(() => {
+    if (!tripId || seatIds.length === 0) {
       setError('Missing seat or trip');
       setLoading(false);
       return;
     }
 
     async function loadEverything() {
-      // Fetch trip + bus + route
       const { data: tripData, error: tripError } = await supabase
         .from('trips')
         .select(`
-          id,
-          departure_at,
-          status,
+          id, departure_at, status,
           buses (fleet_number, nickname),
           routes (code, name)
         `)
@@ -69,34 +102,35 @@ export default function ConfirmPage() {
       }
       setTrip(tripData);
 
-      // Find the hold for this session
+      // Verify holds for ALL seats
       const sessionId = getSessionId();
-      const { data: hold } = await supabase
+      const { data: holds } = await supabase
         .from('seat_holds')
-        .select('expires_at')
+        .select('seat_id, expires_at')
         .eq('trip_id', tripId)
-        .eq('seat_id', seatId)
         .eq('session_id', sessionId)
-        .gt('expires_at', new Date().toISOString())
-        .maybeSingle();
+        .in('seat_id', seatIds)
+        .gt('expires_at', new Date().toISOString());
 
-      if (!hold) {
+      if (!holds || holds.length !== seatIds.length) {
         setError('Your seat hold has expired. Please pick the seat again.');
         setLoading(false);
         return;
       }
 
-      setHoldExpiresAt(new Date(hold.expires_at).getTime());
+      // Use the earliest-expiring hold for the countdown
+      const earliestExpiry = Math.min(...holds.map(h => new Date(h.expires_at).getTime()));
+      setHoldExpiresAt(earliestExpiry);
       setLoading(false);
     }
 
     loadEverything();
-  }, [tripId, seatId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId]);
 
   // Countdown ticker
   useEffect(() => {
     if (!holdExpiresAt) return;
-
     function tick() {
       const remaining = Math.max(0, Math.floor((holdExpiresAt - Date.now()) / 1000));
       setSecondsLeft(remaining);
@@ -104,79 +138,149 @@ export default function ConfirmPage() {
         setError('Your seat hold has expired. Please pick the seat again.');
       }
     }
-
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [holdExpiresAt]);
 
+  // Pre-fill first passenger from signed-in user (when bookingForSelf is true)
+  useEffect(() => {
+    if (!isSignedIn) return;
+    if (passengers.length === 0) return;
+
+    const first = passengers[0];
+    if (first.bookingForSelf) {
+      if (first.name !== (user.full_name || '') || first.phone !== (user.phone || '')) {
+        setPassengers(prev => prev.map((p, i) =>
+          i === 0 ? { ...p, name: user.full_name || '', phone: user.phone || '' } : p
+        ));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn, user?.full_name, user?.phone, passengers[0]?.bookingForSelf]);
+
+  // Anon nudge — only fires for anon users on the FIRST passenger's phone
+  useEffect(() => {
+    if (isSignedIn) return;
+    if (nudgeDismissed) return;
+    if (passengers.length === 0) return;
+
+    const phone = passengers[0]?.phone || '';
+    const cleaned = phone.trim().replace(/\s/g, '');
+    if (!/^\+?[0-9]{9,13}$/.test(cleaned)) {
+      setAnonBookingCount(0);
+      return;
+    }
+
+    let cancelled = false;
+    const timeout = setTimeout(async () => {
+      const { data, error } = await supabase.rpc('get_booking_count_by_phone', {
+        p_phone: cleaned
+      });
+      if (!cancelled && !error && typeof data === 'number') {
+        setAnonBookingCount(data);
+      }
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [isSignedIn, nudgeDismissed, passengers[0]?.phone]);
+
+  function updatePassenger(idx, field, value) {
+    setPassengers(prev => prev.map((p, i) =>
+      i === idx ? { ...p, [field]: value } : p
+    ));
+  }
+
+  function toggleBookingForSelf(idx) {
+    setPassengers(prev => prev.map((p, i) => {
+      if (i !== idx) return p;
+      const nextForSelf = !p.bookingForSelf;
+      // Clear fields if turning "for someone else" on
+      return {
+        ...p,
+        bookingForSelf: nextForSelf,
+        name: nextForSelf ? (user?.full_name || '') : '',
+        phone: nextForSelf ? (user?.phone || '') : ''
+      };
+    }));
+  }
+
   async function submit(e) {
     e.preventDefault();
     setFormError(null);
 
-    // Basic validation
-    if (!name.trim() || name.trim().length < 2) {
-      setFormError('Please enter your full name');
-      return;
-    }
-    if (!phone.trim()) {
-      setFormError('Please enter your phone number');
-      return;
-    }
-    // Allow 9-13 digits with optional + prefix
-    const cleaned = phone.trim().replace(/\s/g, '');
-    if (!/^\+?[0-9]{9,13}$/.test(cleaned)) {
-      setFormError('Phone number looks wrong. Use 0712345678 or +254712345678');
-      return;
+    // Validate all passengers
+    for (let i = 0; i < passengers.length; i++) {
+      const p = passengers[i];
+      if (!p.name.trim() || p.name.trim().length < 2) {
+        setFormError(`Passenger ${i + 1}: please enter a full name`);
+        return;
+      }
+      if (!p.phone.trim()) {
+        setFormError(`Passenger ${i + 1}: please enter a phone number`);
+        return;
+      }
+      const cleaned = p.phone.trim().replace(/\s/g, '');
+      if (!/^\+?[0-9]{9,13}$/.test(cleaned)) {
+        setFormError(`Passenger ${i + 1}: phone number looks wrong. Use 0712345678 or +254712345678`);
+        return;
+      }
     }
 
     setSubmitting(true);
 
-    const { data, error: bookingError } = await supabase.rpc(
-      'create_booking_with_passenger',
-      {
-        p_trip_id: tripId,
-        p_seat_id: seatId,
-        p_session_id: getSessionId(),
-        p_passenger_name: name.trim(),
-        p_passenger_phone: cleaned,
-        p_boarding_stop_id: boardingStopId || null,
-        p_alighting_stop_id: alightingStopId || null,
-        p_boarding_lat: boardingLat ? parseFloat(boardingLat) : null,
-        p_boarding_lng: boardingLng ? parseFloat(boardingLng) : null,
-        p_boarding_label_user: boardingLabelUser || null,
-        p_boarding_label_auto: boardingLabelAuto || null,
-        p_alighting_lat: alightingLat ? parseFloat(alightingLat) : null,
-        p_alighting_lng: alightingLng ? parseFloat(alightingLng) : null,
-        p_alighting_label_user: alightingLabelUser || null,
-        p_alighting_label_auto: alightingLabelAuto || null
-      }
-    );
+    // Build the batch payload
+    const batchPayload = passengers.map((p, i) => ({
+      seat_id: seatIds[i],
+      passenger_name: p.name.trim(),
+      passenger_phone: p.phone.trim().replace(/\s/g, '')
+    }));
+
+    const { data, error: bookingError } = await supabase.rpc('create_bookings_batch', {
+      p_trip_id: tripId,
+      p_session_id: getSessionId(),
+      p_passengers: batchPayload,
+      p_boarding_stop_id: boardingStopId || null,
+      p_alighting_stop_id: alightingStopId || null,
+      p_boarding_lat: boardingLat ? parseFloat(boardingLat) : null,
+      p_boarding_lng: boardingLng ? parseFloat(boardingLng) : null,
+      p_boarding_label_user: boardingLabelUser || null,
+      p_boarding_label_auto: boardingLabelAuto || null,
+      p_alighting_lat: alightingLat ? parseFloat(alightingLat) : null,
+      p_alighting_lng: alightingLng ? parseFloat(alightingLng) : null,
+      p_alighting_label_user: alightingLabelUser || null,
+      p_alighting_label_auto: alightingLabelAuto || null,
+      p_booked_by_token: getSessionToken() || null
+    });
 
     if (bookingError) {
       setFormError(bookingError.message || 'Could not complete booking. Please try again.');
       setSubmitting(false);
       return;
     }
-
-    if (!data) {
+    if (!data?.ok) {
       setFormError('Booking failed unexpectedly. Please try again.');
       setSubmitting(false);
       return;
     }
 
-    // Success — route to the boarding pass
-    router.push(`/boarding-pass/${data.id}`);
+    // Multi-booking → land on my-bookings (per session 9 decision)
+    // Single-booking → land on boarding pass (preserves existing flow)
+    if (data.count === 1) {
+      const bookingId = data.bookings[0].id;
+      router.push(`/boarding-pass/${bookingId}`);
+    } else {
+      router.push('/my-bookings');
+    }
   }
 
   // ===== Render =====
 
   if (loading) {
-    return (
-      <main className="confirm-page">
-        <div className="cf-loading">Checking your hold…</div>
-      </main>
-    );
+    return <main className="confirm-page"><div className="cf-loading">Checking your holds…</div></main>;
   }
 
   if (error) {
@@ -195,11 +299,12 @@ export default function ConfirmPage() {
   const timeStr = dep.toLocaleTimeString('en-KE', { hour: 'numeric', minute: '2-digit', hour12: true });
   const dateStr = dep.toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short' });
 
+  const showAnonNudge = !isSignedIn && anonBookingCount >= 5 && !nudgeDismissed;
+
   return (
     <main className="confirm-page">
       <div className="cf-inner">
 
-        {/* Header */}
         <div className="cf-head">
           <Link href={`/book/${tripId}`} className="cf-back">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -207,16 +312,19 @@ export default function ConfirmPage() {
             </svg>
             Back to seat map
           </Link>
-
           <div className="cf-step">Step 2 of 2</div>
         </div>
 
-        <h1 className="cf-title">Almost there.</h1>
+        <h1 className="cf-title">
+          {isMulti ? 'Almost there · 2 tickets' : 'Almost there.'}
+        </h1>
         <p className="cf-subtitle">
-          We need your name and phone so the conductor can find you and send your boarding pass.
+          {isMulti
+            ? 'Enter each passenger\'s name and phone. Both boarding passes are sent right after you confirm.'
+            : 'We need a name and phone so the conductor can find you and send the boarding pass.'}
         </p>
 
-        {/* Booking summary card */}
+        {/* Trip summary */}
         <div className="cf-summary">
           <div className="cf-summary-head">
             <div>
@@ -246,48 +354,76 @@ export default function ConfirmPage() {
               </div>
             </div>
             <div className="cf-summary-item cf-summary-seat">
-              <div className="cf-summary-key">Seat</div>
-              <div className="cf-summary-val-seat">{seatId}</div>
+              <div className="cf-summary-key">Seats</div>
+              <div className="cf-summary-val-seat">
+                {seatIds.join(' + ')}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Form */}
+        {/* Anon nudge (only for first passenger's phone) */}
+        {showAnonNudge && (
+          <div className="cf-nudge">
+            <div className="cf-nudge-head">
+              <div className="cf-nudge-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              </div>
+              <div className="cf-nudge-title">
+                You've booked with Wabebe <strong>{anonBookingCount}</strong> times.
+              </div>
+              <button
+                type="button"
+                className="cf-nudge-close"
+                onClick={() => setNudgeDismissed(true)}
+                aria-label="Dismiss"
+              >×</button>
+            </div>
+            <p className="cf-nudge-body">
+              An account would save your details, keep your bookings in one place, and set you up for loyalty rewards when they launch.
+            </p>
+            <div className="cf-nudge-actions">
+              <Link href={`/signin?phone=${encodeURIComponent(passengers[0]?.phone || '')}`} className="cf-nudge-cta">
+                Set up my account →
+              </Link>
+              <button
+                type="button"
+                className="cf-nudge-later"
+                onClick={() => setNudgeDismissed(true)}
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Passenger forms */}
         <form className="cf-form" onSubmit={submit}>
-          <div className="cf-field">
-            <label htmlFor="name" className="cf-label">Full name</label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Liam Mwangi"
-              autoComplete="name"
+          {passengers.map((passenger, idx) => (
+            <PassengerForm
+              key={idx}
+              idx={idx}
+              seatId={seatIds[idx]}
+              passenger={passenger}
+              isSignedIn={isSignedIn}
+              isMulti={isMulti}
+              user={user}
+              onUpdate={(field, value) => updatePassenger(idx, field, value)}
+              onToggleSelf={() => toggleBookingForSelf(idx)}
               disabled={submitting}
             />
-          </div>
+          ))}
 
-          <div className="cf-field">
-            <label htmlFor="phone" className="cf-label">Phone number</label>
-            <input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="0712 345 678"
-              autoComplete="tel"
-              inputMode="tel"
-              disabled={submitting}
-            />
-            <div className="cf-hint">We'll send your boarding pass here</div>
-          </div>
-
-          {formError && (
-            <div className="cf-form-error">{formError}</div>
-          )}
+          {formError && <div className="cf-form-error">{formError}</div>}
 
           <button type="submit" className="cf-confirm-btn" disabled={submitting || secondsLeft === 0}>
-            {submitting ? 'Confirming…' : 'Confirm booking →'}
+            {submitting
+              ? 'Confirming…'
+              : isMulti
+                ? 'Confirm both bookings →'
+                : 'Confirm booking →'}
           </button>
 
           <div className="cf-policy">
@@ -295,10 +431,122 @@ export default function ConfirmPage() {
               <rect x="3" y="11" width="18" height="11" rx="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            By booking, you agree to arrive within 2 minutes of departure. No-shows lead to a temporary booking suspension.
+            By booking, {isMulti ? 'each passenger' : 'you'} agree{isMulti ? '' : 's'} to arrive within 2 minutes of departure. No-shows lead to a temporary booking suspension.
           </div>
         </form>
       </div>
     </main>
+  );
+}
+
+// ============ SINGLE PASSENGER FORM ============
+function PassengerForm({ idx, seatId, passenger, isSignedIn, isMulti, user, onUpdate, onToggleSelf, disabled }) {
+  const showToggle = isSignedIn && idx === 0 && !isMulti; // toggle only for single-seat signed-in flow
+  const showSecondPassengerHeader = isMulti && idx === 1;
+  const showFirstPassengerHeader = isMulti && idx === 0;
+  const lockedFromAccount = isSignedIn && idx === 0 && passenger.bookingForSelf;
+
+  return (
+    <div className={`cf-passenger ${isMulti ? 'cf-passenger-multi' : ''}`}>
+      {isMulti && (
+        <div className="cf-passenger-header">
+          <div className="cf-passenger-seat">Seat {seatId}</div>
+          <div className="cf-passenger-label">
+            {showFirstPassengerHeader
+              ? (isSignedIn ? `Passenger 1 · You` : 'Passenger 1')
+              : 'Passenger 2'}
+          </div>
+        </div>
+      )}
+
+      {/* Signed-in badge (single-seat mode only) */}
+      {isSignedIn && !isMulti && (
+        <div className={`cf-signed-badge ${passenger.bookingForSelf ? 'cf-badge-self' : 'cf-badge-other'}`}>
+          <div className="cf-badge-icon">
+            {passenger.bookingForSelf ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            )}
+          </div>
+          <div className="cf-badge-text">
+            {passenger.bookingForSelf ? (
+              user.full_name ? (
+                <>Booking as <strong>{user.full_name}</strong></>
+              ) : (
+                <>Booking with your account · <strong>{formatPhoneKE(user.phone)}</strong></>
+              )
+            ) : (
+              <>Booking for someone else</>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="cf-field">
+        <label htmlFor={`name-${idx}`} className="cf-label">Full name</label>
+        <input
+          id={`name-${idx}`}
+          type="text"
+          value={passenger.name}
+          onChange={(e) => onUpdate('name', e.target.value)}
+          placeholder={idx === 1 ? "Your mom, friend, etc." : "Your name"}
+          autoComplete={idx === 0 ? 'name' : 'off'}
+          disabled={disabled || (lockedFromAccount && !!user?.full_name)}
+        />
+        {lockedFromAccount && user?.full_name && (
+          <div className="cf-hint cf-hint-locked">From your account</div>
+        )}
+        {lockedFromAccount && !user?.full_name && (
+          <div className="cf-hint">
+            We don't have a name saved for you yet. Enter it once here.
+          </div>
+        )}
+      </div>
+
+      <div className="cf-field">
+        <label htmlFor={`phone-${idx}`} className="cf-label">Phone number</label>
+        <input
+          id={`phone-${idx}`}
+          type="tel"
+          value={passenger.phone}
+          onChange={(e) => onUpdate('phone', e.target.value)}
+          placeholder="0712 345 678"
+          autoComplete={idx === 0 ? 'tel' : 'off'}
+          inputMode="tel"
+          disabled={disabled || lockedFromAccount}
+        />
+        <div className="cf-hint">
+          {lockedFromAccount
+            ? 'From your account · boarding pass goes here'
+            : idx === 1
+              ? "This passenger's boarding pass goes here"
+              : "We'll send the boarding pass here"}
+        </div>
+      </div>
+
+      {showToggle && (
+        <label className="cf-toggle">
+          <input
+            type="checkbox"
+            checked={!passenger.bookingForSelf}
+            onChange={onToggleSelf}
+            disabled={disabled}
+          />
+          <span className="cf-toggle-switch"></span>
+          <span className="cf-toggle-label">
+            Book for someone else
+            <span className="cf-toggle-hint">Their number gets the boarding pass, not yours.</span>
+          </span>
+        </label>
+      )}
+    </div>
   );
 }

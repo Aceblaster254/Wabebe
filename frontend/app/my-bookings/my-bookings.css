@@ -430,3 +430,28 @@
     padding: 12px 14px;
   }
 }
+
+.mb-row-for-other {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(201, 123, 30, 0.1);
+  border: 1px solid rgba(201, 123, 30, 0.3);
+  border-radius: 999px;
+  font-size: 12px;
+  color: #8B5A12;
+  font-weight: 500;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.mb-row-for-other svg {
+  color: var(--amber);
+  flex-shrink: 0;
+}
+
+.mb-row-for-other strong {
+  color: var(--ink);
+  font-weight: 600;
+}

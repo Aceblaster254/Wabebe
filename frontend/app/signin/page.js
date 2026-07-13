@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { requestOtp, verifyOtp } from '@/lib/auth/session';
@@ -12,8 +12,9 @@ export default function SignInPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-  const [step, setStep] = useState('phone'); // 'phone' | 'code' | 'welcome' | 'returning'
-  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState('phone');
+  const searchParams = useSearchParams();
+  const [phone, setPhone] = useState(() => searchParams.get('phone') || '');
   const [code, setCode] = useState('');
   const [devCode, setDevCode] = useState(null);
   const [submitting, setSubmitting] = useState(false);

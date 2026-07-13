@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { getSessionToken } from '@/lib/auth/session';
 import './my-bookings.css';
 
 export default function MyBookingsPage() {
@@ -12,6 +14,38 @@ export default function MyBookingsPage() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [filter, setFilter] = useState('upcoming'); // 'upcoming' | 'all'
+
+  const { user, loading: authLoading } = useAuth();
+
+// Auto-load bookings for signed-in users
+useEffect(() => {
+  if (authLoading) return;
+  if (!user) return; // stay on the lookup form for anon users
+  if (result) return; // already loaded
+
+  const token = getSessionToken();
+  if (!token) return;
+
+  (async () => {
+    setLoading(true);
+    const { data, error: rpcError } = await supabase.rpc('get_my_bookings_by_session', {
+      p_token: token
+    });
+    setLoading(false);
+
+    if (rpcError) {
+      setError(rpcError.message);
+      return;
+    }
+    if (data?.error === 'not_authenticated') {
+      // token was invalidated — user needs to re-sign-in
+      return;
+    }
+    if (data?.ok) {
+      setResult(data);
+    }
+  })();
+}, [authLoading, user, result]);
 
   async function handleLookup(e) {
     e.preventDefault();
@@ -240,6 +274,16 @@ function BookingRow({ booking }) {
             <circle cx="12" cy="10" r="3"/>
           </svg>
           Boarding at {booking.boarding_label}
+        </div>
+      )}
+
+      {booking.booked_for_other && (
+        <div className="mb-row-for-other">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+          </svg>
+          Booked for <strong>{booking.passenger_name || booking.passenger_phone}</strong>
         </div>
       )}
 

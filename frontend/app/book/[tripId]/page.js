@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import './seat-map.css';
 
-// Generate a per-browser session ID for holds (stays the same across reloads)
 function getSessionId() {
   if (typeof window === 'undefined') return null;
   let id = localStorage.getItem('wabebe_session_id');
@@ -22,7 +21,7 @@ export default function SeatMapPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tripId = params.tripId;
-  // Forwarded from stop picker — either stop ID or pin data
+
   const boardingStopId = searchParams.get('boarding_stop');
   const alightingStopId = searchParams.get('alighting_stop');
   const boardingLat = searchParams.get('boarding_lat');
@@ -33,26 +32,28 @@ export default function SeatMapPage() {
   const alightingLng = searchParams.get('alighting_lng');
   const alightingLabelAuto = searchParams.get('alighting_label_auto');
   const alightingLabelUser = searchParams.get('alighting_label_user');
+
   const [trip, setTrip] = useState(null);
   const [seats, setSeats] = useState([]);
-  const [selectedSeat, setSelectedSeat] = useState(null);
-  const [holdExpiresAt, setHoldExpiresAt] = useState(null);
-  const [secondsLeft, setSecondsLeft] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
+  // Selection state
+  const [multiMode, setMultiMode] = useState(false);
+  const [selectedSeats, setSelectedSeats] = useState([]); // works for both modes: [] or [id] or [id, id]
+  const [holdExpiresAt, setHoldExpiresAt] = useState(null);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+
   const sessionIdRef = useRef(null);
 
-  // Fetch trip + bus details once
+  // Load trip
   useEffect(() => {
     async function loadTrip() {
       const { data, error } = await supabase
         .from('trips')
         .select(`
-          id,
-          departure_at,
-          status,
+          id, departure_at, status,
           buses (fleet_number, plate, nickname, bus_layouts (seat_map)),
           routes (code, name)
         `)
@@ -64,7 +65,6 @@ export default function SeatMapPage() {
         setLoading(false);
         return;
       }
-
       setTrip(data);
       setLoading(false);
     }
@@ -73,37 +73,27 @@ export default function SeatMapPage() {
     loadTrip();
   }, [tripId]);
 
-  // Load seat status and subscribe to live updates
+  // Load seats + subscribe to updates
   useEffect(() => {
     if (!tripId) return;
 
     async function loadSeats() {
-      const { data, error } = await supabase
-        .rpc('get_seat_status', { p_trip_id: tripId });
-
-      if (!error && data) {
-        setSeats(data);
-      }
+      const { data, error } = await supabase.rpc('get_seat_status', { p_trip_id: tripId });
+      if (!error && data) setSeats(data);
     }
 
     loadSeats();
 
-    // Subscribe to seat_holds and bookings changes for this trip
     const channel = supabase
       .channel(`trip-${tripId}`)
-      .on(
-        'postgres_changes',
+      .on('postgres_changes',
         { event: '*', schema: 'public', table: 'seat_holds', filter: `trip_id=eq.${tripId}` },
-        () => loadSeats()
-      )
-      .on(
-        'postgres_changes',
+        () => loadSeats())
+      .on('postgres_changes',
         { event: '*', schema: 'public', table: 'bookings', filter: `trip_id=eq.${tripId}` },
-        () => loadSeats()
-      )
+        () => loadSeats())
       .subscribe();
 
-    // Also refresh every 10 seconds as a fallback in case a hold quietly expires
     const interval = setInterval(loadSeats, 10000);
 
     return () => {
@@ -112,91 +102,157 @@ export default function SeatMapPage() {
     };
   }, [tripId]);
 
-  // Hold countdown timer
+  // Countdown ticker
   useEffect(() => {
-    if (!holdExpiresAt) {
-      setSecondsLeft(0);
-      return;
-    }
+    if (!holdExpiresAt) { setSecondsLeft(0); return; }
 
-    function updateCountdown() {
+    function tick() {
       const remaining = Math.max(0, Math.floor((holdExpiresAt - Date.now()) / 1000));
       setSecondsLeft(remaining);
-
       if (remaining === 0) {
-        // Hold expired — release UI state
-        setSelectedSeat(null);
+        setSelectedSeats([]);
         setHoldExpiresAt(null);
       }
     }
 
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [holdExpiresAt]);
 
-  // Handle seat tap
+  // Handle mode toggle
+  async function handleToggleMulti(nextEnabled) {
+    // Release any current selection when switching modes to keep state clean
+    if (selectedSeats.length > 0) {
+      await releaseAllSelected();
+    }
+    setMultiMode(nextEnabled);
+  }
+
+  async function releaseAllSelected() {
+    if (selectedSeats.length === 0) return;
+    if (selectedSeats.length === 1) {
+      await supabase.rpc('release_seat_hold', {
+        p_trip_id: tripId,
+        p_seat_id: selectedSeats[0]
+      });
+    } else {
+      await supabase.rpc('release_seats', {
+        p_trip_id: tripId,
+        p_seat_ids: selectedSeats,
+        p_session_id: sessionIdRef.current
+      });
+    }
+    setSelectedSeats([]);
+    setHoldExpiresAt(null);
+  }
+
+  // Tap a seat
   async function selectSeat(seat) {
     if (busy) return;
     if (seat.status === 'taken' || seat.status === 'booked' || seat.status === 'conductor') return;
 
     setBusy(true);
 
-    // If a different seat is already selected, release that hold first
-    if (selectedSeat && selectedSeat !== seat.id) {
-      await supabase.rpc('release_seat_hold', {
+    if (!multiMode) {
+      // === SINGLE-SELECT MODE (original behavior) ===
+      // Replace any existing selection with this seat
+      const already = selectedSeats.includes(seat.id);
+      if (already) {
+        // Tapping the same seat again releases it
+        await supabase.rpc('release_seat_hold', {
+          p_trip_id: tripId,
+          p_seat_id: seat.id
+        });
+        setSelectedSeats([]);
+        setHoldExpiresAt(null);
+        setBusy(false);
+        return;
+      }
+
+      // Different seat — release the old one first, then hold the new one
+      if (selectedSeats.length > 0) {
+        await supabase.rpc('release_seat_hold', {
+          p_trip_id: tripId,
+          p_seat_id: selectedSeats[0]
+        });
+      }
+      const { data: success, error: holdError } = await supabase.rpc('hold_seat', {
         p_trip_id: tripId,
-        p_seat_id: selectedSeat
+        p_seat_id: seat.id,
+        p_session_id: sessionIdRef.current
       });
+
+      if (holdError) {
+        console.error('Hold failed:', holdError);
+        setBusy(false);
+        return;
+      }
+      if (!success) {
+        // Race — someone else got it
+        const { data } = await supabase.rpc('get_seat_status', { p_trip_id: tripId });
+        if (data) setSeats(data);
+        setBusy(false);
+        return;
+      }
+
+      setSelectedSeats([seat.id]);
+      setHoldExpiresAt(Date.now() + 2 * 60 * 1000);
+      setBusy(false);
+      return;
     }
 
-    // Try to place a new hold
-    const { data: success, error: holdError } = await supabase.rpc('hold_seat', {
+    // === MULTI-SELECT MODE ===
+    const already = selectedSeats.includes(seat.id);
+
+    if (already) {
+      // Tapping a selected seat removes it from the group
+      await supabase.rpc('release_seats', {
+        p_trip_id: tripId,
+        p_seat_ids: [seat.id],
+        p_session_id: sessionIdRef.current
+      });
+      const next = selectedSeats.filter(s => s !== seat.id);
+      setSelectedSeats(next);
+      if (next.length === 0) setHoldExpiresAt(null);
+      setBusy(false);
+      return;
+    }
+
+    // Cap at 2 seats
+    if (selectedSeats.length >= 2) {
+      // Ignore extra taps — user must remove a seat first
+      setBusy(false);
+      return;
+    }
+
+    // Add this seat via hold_seats_multi (both the existing + new seat, atomically)
+    const nextSelection = [...selectedSeats, seat.id];
+    const { data: result, error: holdError } = await supabase.rpc('hold_seats_multi', {
       p_trip_id: tripId,
-      p_seat_id: seat.id,
+      p_seat_ids: nextSelection,
       p_session_id: sessionIdRef.current
     });
 
-    if (holdError) {
-      console.error('Hold failed:', holdError);
-      // If user isn't logged in we get an auth error — for v1.0 we'll send them through login first
-      if (holdError.message?.includes('logged in')) {
-        router.push(`/login?next=/book/${tripId}`);
-      }
-      setBusy(false);
-      return;
-    }
-
-    if (!success) {
-      // Someone else got it first
-      setBusy(false);
-      // Refresh to show the latest state
+    if (holdError || !result?.ok) {
+      console.error('Multi-hold failed:', holdError || result);
       const { data } = await supabase.rpc('get_seat_status', { p_trip_id: tripId });
       if (data) setSeats(data);
+      setBusy(false);
       return;
     }
 
-    // Success — update local state
-    setSelectedSeat(seat.id);
-    setHoldExpiresAt(Date.now() + 2 * 60 * 1000); // 2 minutes
-    setBusy(false);
-  }
-
-  async function cancelSelection() {
-    if (!selectedSeat) return;
-    setBusy(true);
-    await supabase.rpc('release_seat_hold', {
-      p_trip_id: tripId,
-      p_seat_id: selectedSeat
-    });
-    setSelectedSeat(null);
-    setHoldExpiresAt(null);
+    setSelectedSeats(nextSelection);
+    setHoldExpiresAt(Date.now() + 2 * 60 * 1000);
     setBusy(false);
   }
 
   function continueToConfirm() {
-    if (!selectedSeat) return;
-    const params = new URLSearchParams({ seat: selectedSeat });
+    if (selectedSeats.length === 0) return;
+
+    const params = new URLSearchParams();
+    // Pass seats as comma-separated string: seat=2A,2B (or single: seat=2A)
+    params.set('seat', selectedSeats.join(','));
 
     if (boardingStopId) params.append('boarding_stop', boardingStopId);
     if (boardingLat && boardingLng) {
@@ -205,7 +261,6 @@ export default function SeatMapPage() {
       if (boardingLabelAuto) params.append('boarding_label_auto', boardingLabelAuto);
       if (boardingLabelUser) params.append('boarding_label_user', boardingLabelUser);
     }
-
     if (alightingStopId) params.append('alighting_stop', alightingStopId);
     if (alightingLat && alightingLng) {
       params.append('alighting_lat', alightingLat);
@@ -239,7 +294,6 @@ export default function SeatMapPage() {
   const dep = new Date(trip.departure_at);
   const timeStr = dep.toLocaleTimeString('en-KE', { hour: 'numeric', minute: '2-digit', hour12: true });
 
-  // Group seats by row for grid rendering
   const seatsByRow = {};
   for (const layoutSeat of seatMap) {
     const status = seats.find(s => s.seat_id === layoutSeat.id);
@@ -253,10 +307,10 @@ export default function SeatMapPage() {
   }
 
   const rowNumbers = Object.keys(seatsByRow).map(Number).sort((a, b) => a - b);
+  const canContinue = selectedSeats.length > 0 && !busy;
 
   return (
     <main className="seat-map-page">
-      {/* Header */}
       <div className="sm-header">
         <div className="sm-header-inner">
           <Link href={`/routes/${trip.routes.code}`} className="sm-back">
@@ -280,7 +334,6 @@ export default function SeatMapPage() {
         </div>
       </div>
 
-      {/* Title + legend */}
       <section className="sm-title-block">
         <h1 className="sm-title">Pick your seat</h1>
         <div className="sm-legend">
@@ -290,6 +343,25 @@ export default function SeatMapPage() {
           <span className="sm-legend-item"><span className="sm-swatch sw-conductor"></span>Conductor</span>
         </div>
       </section>
+
+      {/* Multi-mode toggle */}
+      <div className="sm-multi-toggle">
+        <label className="sm-multi-label">
+          <input
+            type="checkbox"
+            checked={multiMode}
+            onChange={(e) => handleToggleMulti(e.target.checked)}
+            disabled={busy}
+          />
+          <span className="sm-toggle-switch"></span>
+          <span className="sm-toggle-text">
+            <strong>Book for me + 1 other</strong>
+            <span className="sm-toggle-hint">
+              {multiMode ? 'Pick 2 seats. You\'ll enter details for both on the next screen.' : 'Turn on to pick two seats and add a second passenger.'}
+            </span>
+          </span>
+        </label>
+      </div>
 
       {/* Bus diagram */}
       <section className="sm-bus">
@@ -314,7 +386,7 @@ export default function SeatMapPage() {
                   {isCockpit ? (
                     <>
                       {rowSeats.map(seat => (
-                        <Seat key={seat.id} seat={seat} selectedSeat={selectedSeat} onClick={() => selectSeat(seat)} />
+                        <Seat key={seat.id} seat={seat} selectedSeats={selectedSeats} onClick={() => selectSeat(seat)} />
                       ))}
                       <div className="sm-spacer-wide"></div>
                       <div className="sm-driver">
@@ -327,28 +399,23 @@ export default function SeatMapPage() {
                     </>
                   ) : isBackRow ? (
                     rowSeats.map(seat => (
-                      <Seat key={seat.id} seat={seat} selectedSeat={selectedSeat} onClick={() => selectSeat(seat)} />
+                      <Seat key={seat.id} seat={seat} selectedSeats={selectedSeats} onClick={() => selectSeat(seat)} />
                     ))
                   ) : (
                     <>
-                      {/* Left side: A and B (or door placeholders) */}
                       {['A', 'B'].map(col => {
                         const seat = rowSeats.find(s => s.col === col);
                         return seat ? (
-                          <Seat key={`${rowNum}${col}`} seat={seat} selectedSeat={selectedSeat} onClick={() => selectSeat(seat)} />
+                          <Seat key={`${rowNum}${col}`} seat={seat} selectedSeats={selectedSeats} onClick={() => selectSeat(seat)} />
                         ) : (
                           <div key={`${rowNum}${col}-gap`} className="sm-seat-gap" title="Mid-door"></div>
                         );
                       })}
-
-                      {/* Aisle */}
                       <div className="sm-aisle"></div>
-
-                      {/* Right side: C and D (or door placeholders) */}
                       {['C', 'D'].map(col => {
                         const seat = rowSeats.find(s => s.col === col);
                         return seat ? (
-                          <Seat key={`${rowNum}${col}`} seat={seat} selectedSeat={selectedSeat} onClick={() => selectSeat(seat)} />
+                          <Seat key={`${rowNum}${col}`} seat={seat} selectedSeats={selectedSeats} onClick={() => selectSeat(seat)} />
                         ) : (
                           <div key={`${rowNum}${col}-gap`} className="sm-seat-gap" title="Mid-door"></div>
                         );
@@ -364,16 +431,22 @@ export default function SeatMapPage() {
         </div>
       </section>
 
-      {/* Summary / CTA */}
+      {/* Summary */}
       <section className="sm-summary">
-        {!selectedSeat ? (
-          <div className="sm-summary-empty">Tap a seat above to begin</div>
+        {selectedSeats.length === 0 ? (
+          <div className="sm-summary-empty">
+            {multiMode ? 'Tap 2 seats above to begin' : 'Tap a seat above to begin'}
+          </div>
         ) : (
           <div className="sm-summary-active">
             <div className="sm-summary-row">
               <div>
-                <div className="sm-summary-label">Selected</div>
-                <div className="sm-summary-seat">Seat {selectedSeat}</div>
+                <div className="sm-summary-label">
+                  {selectedSeats.length === 1 ? 'Selected' : `${selectedSeats.length} seats selected`}
+                </div>
+                <div className="sm-summary-seat">
+                  {selectedSeats.map(s => `Seat ${s}`).join(' + ')}
+                </div>
               </div>
               <div className="sm-hold-timer">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -384,11 +457,15 @@ export default function SeatMapPage() {
             </div>
 
             <div className="sm-summary-actions">
-              <button onClick={cancelSelection} className="sm-btn-cancel" disabled={busy}>
-                Cancel
+              <button onClick={releaseAllSelected} className="sm-btn-cancel" disabled={busy}>
+                Clear
               </button>
-              <button onClick={continueToConfirm} className="sm-btn-confirm" disabled={busy}>
-                Confirm seat →
+              <button onClick={continueToConfirm} className="sm-btn-confirm" disabled={!canContinue}>
+                {multiMode && selectedSeats.length < 2
+                  ? `Continue with 1 seat →`
+                  : selectedSeats.length === 2
+                    ? 'Continue with 2 seats →'
+                    : 'Confirm seat →'}
               </button>
             </div>
           </div>
@@ -399,8 +476,8 @@ export default function SeatMapPage() {
 }
 
 // ============ SEAT BUTTON ============
-function Seat({ seat, selectedSeat, onClick }) {
-  const isSelected = selectedSeat === seat.id;
+function Seat({ seat, selectedSeats, onClick }) {
+  const isSelected = selectedSeats.includes(seat.id);
   const classes = ['sm-seat', `sm-seat-${seat.type}`, `sm-seat-${seat.status}`];
   if (isSelected) classes.push('sm-seat-selected');
 

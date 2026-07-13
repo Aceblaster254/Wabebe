@@ -316,3 +316,283 @@
   flex-shrink: 0;
   margin-top: 2px;
 }
+
+/* ============ SIGNED-IN BADGE ============ */
+.cf-signed-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.cf-badge-self {
+  background: rgba(11, 61, 46, 0.08);
+  border: 1px solid rgba(11, 61, 46, 0.2);
+  color: var(--ink);
+}
+
+.cf-badge-self .cf-badge-icon { color: var(--green); }
+
+.cf-badge-other {
+  background: rgba(201, 123, 30, 0.08);
+  border: 1px solid rgba(201, 123, 30, 0.3);
+  color: var(--ink);
+}
+
+.cf-badge-other .cf-badge-icon { color: var(--amber); }
+
+.cf-badge-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-badge-text {
+  flex: 1;
+  line-height: 1.35;
+}
+
+.cf-badge-text strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ============ ANON NUDGE CARD ============ */
+.cf-nudge {
+  background: rgba(201, 123, 30, 0.06);
+  border: 1px solid rgba(201, 123, 30, 0.25);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  animation: cf-nudge-in 0.3s ease;
+}
+
+@keyframes cf-nudge-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.cf-nudge-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cf-nudge-icon {
+  color: var(--amber);
+  flex-shrink: 0;
+}
+
+.cf-nudge-title {
+  flex: 1;
+  font-family: var(--serif);
+  font-size: 16px;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+}
+
+.cf-nudge-title strong {
+  font-weight: 600;
+  color: var(--amber);
+}
+
+.cf-nudge-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.cf-nudge-close:hover {
+  color: var(--ink);
+  background: rgba(201, 123, 30, 0.1);
+}
+
+.cf-nudge-body {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0 0 12px;
+}
+
+.cf-nudge-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cf-nudge-cta {
+  padding: 8px 16px;
+  background: var(--amber);
+  color: var(--paper);
+  border: none;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.cf-nudge-cta:hover {
+  background: #a86419;
+}
+
+.cf-nudge-later {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 8px 4px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cf-nudge-later:hover {
+  color: var(--ink);
+}
+
+/* ============ BOOK-FOR-SOMEONE-ELSE TOGGLE ============ */
+.cf-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color 0.15s ease;
+}
+
+.cf-toggle:hover {
+  border-color: var(--muted);
+}
+
+.cf-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cf-toggle-switch {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  background: var(--line);
+  border-radius: 999px;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+  margin-top: 1px;
+}
+
+.cf-toggle-switch::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: var(--paper);
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+  box-shadow: 0 1px 2px rgba(14, 27, 23, 0.2);
+}
+
+.cf-toggle input:checked ~ .cf-toggle-switch {
+  background: var(--green);
+}
+
+.cf-toggle input:checked ~ .cf-toggle-switch::before {
+  transform: translateX(14px);
+}
+
+.cf-toggle-label {
+  flex: 1;
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.cf-toggle-hint {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.cf-hint-locked {
+  color: var(--green) !important;
+  font-weight: 500;
+}
+
+@media (max-width: 540px) {
+  .cf-nudge { padding: 14px; }
+  .cf-nudge-title { font-size: 15px; }
+  .cf-nudge-actions { flex-wrap: wrap; }
+}
+
+/* ============ MULTI-PASSENGER STYLING ============ */
+.cf-passenger {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cf-passenger-multi {
+  padding: 18px 20px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+
+.cf-passenger-multi:last-of-type {
+  margin-bottom: 0;
+}
+
+.cf-passenger-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 4px;
+}
+
+.cf-passenger-seat {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--green);
+  letter-spacing: -0.005em;
+}
+
+.cf-passenger-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
