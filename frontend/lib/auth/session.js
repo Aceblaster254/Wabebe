@@ -63,11 +63,16 @@ export async function getCurrentUser() {
  * In production, this returns { ok: true } only, and the code goes via SMS.
  */
 export async function requestOtp(phone) {
-  const { data, error } = await supabase.rpc('send_verification_code', {
-    p_phone: phone
+  const response = await fetch('/api/auth/request-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone })
   });
 
-  if (error) throw new Error(error.message);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to send code');
+  }
   return data;
 }
 

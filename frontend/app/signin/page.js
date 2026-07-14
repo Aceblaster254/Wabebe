@@ -16,7 +16,6 @@ export default function SignInPage() {
   const searchParams = useSearchParams();
   const [phone, setPhone] = useState(() => searchParams.get('phone') || '');
   const [code, setCode] = useState('');
-  const [devCode, setDevCode] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [countdown, setCountdown] = useState(0);
@@ -49,7 +48,6 @@ export default function SignInPage() {
       } else if (data.error === 'rate_limited') {
         setError(data.message || 'Too many code requests. Try again in an hour.');
       } else if (data.ok) {
-        setDevCode(data.dev_code);
         setStep('code');
         setCountdown(30);
       }
@@ -89,7 +87,7 @@ export default function SignInPage() {
     setError(null); setCode(''); setSubmitting(true);
     try {
       const data = await requestOtp(phone.trim());
-      if (data.ok) { setDevCode(data.dev_code); setCountdown(30); }
+      if (data.ok) { setCountdown(30); }
       else if (data.error === 'rate_limited') setError(data.message);
     } catch (err) { setError(err.message); }
     setSubmitting(false);
@@ -153,13 +151,6 @@ export default function SignInPage() {
               We sent a 6-digit code to <strong>{phone}</strong>. It's valid for 5 minutes.
             </p>
           </div>
-
-          {devCode && (
-            <div className="si-devcode">
-              <span className="si-devcode-label">DEV mode</span>
-              <span>Your code is <code>{devCode}</code></span>
-            </div>
-          )}
 
           <form onSubmit={handleCodeSubmit} className="si-form">
             <div className="si-field">

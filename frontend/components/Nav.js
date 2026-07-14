@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from '@/lib/auth/session';
 import './Nav.css';
 
 export default function Nav() {
+  const router = useRouter();
   const { user, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -16,7 +18,7 @@ export default function Nav() {
     await signOut();
     setSigningOut(false);
     setMenuOpen(false);
-    // Optionally navigate somewhere. For now stay put; user sees the "Sign in" button reappear.
+    router.push('/');
   }
 
   const displayName = user?.full_name

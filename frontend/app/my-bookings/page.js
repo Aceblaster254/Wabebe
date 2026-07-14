@@ -278,7 +278,7 @@ function BookingRow({ booking }) {
       )}
 
       {booking.booked_for_other && (
-        <div className="mb-row-for-other">
+        <div className="mb-row-for-other">l
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
             <circle cx="9" cy="7" r="4"/>
