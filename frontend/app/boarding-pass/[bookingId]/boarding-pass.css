@@ -513,3 +513,63 @@
 .bp-recover-link:hover {
   color: var(--green-2);
 }
+
+/* ============ SMS STATUS INDICATORS ============ */
+.bp-sms-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(201, 123, 30, 0.1);
+  border: 1px solid rgba(201, 123, 30, 0.35);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  animation: bp-sms-warn-in 0.3s ease;
+}
+
+@keyframes bp-sms-warn-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.bp-sms-warn-icon {
+  color: var(--amber);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.bp-sms-warn-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bp-sms-warn-text strong {
+  display: block;
+  color: var(--ink);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.bp-sms-warn-text span {
+  color: var(--ink-soft);
+}
+
+.bp-sms-sent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(11, 61, 46, 0.08);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 500;
+  margin-bottom: 12px;
+  animation: bp-sms-warn-in 0.3s ease;
+}
+
+.bp-sms-sent svg {
+  color: var(--green);
+  flex-shrink: 0;
+}

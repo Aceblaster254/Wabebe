@@ -16,6 +16,8 @@ export default function BoardingPassPage() {
   const [error, setError] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [smsStatus, setSmsStatus] = useState(null); // 'sent' | 'failed' | 'no_record' | null (still checking)
+  const [smsCheckAttempts, setSmsCheckAttempts] = useState(0);
 
   useEffect(() => {
     if (!bookingId) return;
@@ -36,6 +38,41 @@ export default function BoardingPassPage() {
 
     load();
   }, [bookingId]);
+
+  // Check SMS confirmation status.
+  // Polls twice with a delay — the SMS might be in-flight if user just booked.
+  useEffect(() => {
+    if (!bookingId) return;
+    if (smsStatus === 'sent' || smsStatus === 'failed') return; // settled
+    if (smsCheckAttempts >= 2) {
+      // Give up polling — assume no SMS was sent (maybe old booking, page revisit)
+      setSmsStatus('no_record');
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      const { data, error } = await supabase.rpc('get_booking_sms_status', {
+        p_booking_id: bookingId
+      });
+
+      if (error || !data || !data.found) {
+        setSmsCheckAttempts(a => a + 1);
+        return;
+      }
+
+      const record = data;
+      if (record.status === 'sent' || record.status === 'delivered') {
+        setSmsStatus('sent');
+      } else if (record.status === 'failed' || record.status === 'blocked') {
+        setSmsStatus('failed');
+      } else {
+        // still queued — retry
+        setSmsCheckAttempts(a => a + 1);
+      }
+    }, smsCheckAttempts === 0 ? 1500 : 3000);
+
+    return () => clearTimeout(timer);
+  }, [bookingId, smsStatus, smsCheckAttempts]);
 
   async function handleCancel() {
     setCancelling(true);
@@ -113,6 +150,30 @@ export default function BoardingPassPage() {
               <strong>Booking confirmed</strong>
               <span>Show this pass to the conductor when boarding</span>
             </div>
+          </div>
+        )}
+
+        {booking.status === 'confirmed' && smsStatus === 'failed' && (
+          <div className="bp-sms-warn">
+            <div className="bp-sms-warn-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M12 9v4M12 17h.01"/>
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              </svg>
+            </div>
+            <div className="bp-sms-warn-text">
+              <strong>We couldn't send an SMS to {booking.passenger_phone}.</strong>
+              <span>Save this page now — it's your only copy. Screenshot the QR and reference.</span>
+            </div>
+          </div>
+        )}
+
+        {booking.status === 'confirmed' && smsStatus === 'sent' && (
+          <div className="bp-sms-sent">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            <span>Confirmation SMS sent to {booking.passenger_phone}</span>
           </div>
         )}
 

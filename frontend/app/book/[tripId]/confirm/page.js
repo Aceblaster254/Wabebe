@@ -209,35 +209,51 @@ export default function ConfirmPage() {
   }
 
   async function submit(e) {
-    e.preventDefault();
-    setFormError(null);
+  e.preventDefault();
+  setFormError(null);
 
-    // Validate all passengers
-    for (let i = 0; i < passengers.length; i++) {
-      const p = passengers[i];
-      if (!p.name.trim() || p.name.trim().length < 2) {
-        setFormError(`Passenger ${i + 1}: please enter a full name`);
-        return;
-      }
-      if (!p.phone.trim()) {
-        setFormError(`Passenger ${i + 1}: please enter a phone number`);
-        return;
-      }
+  // Validate all passengers
+  for (let i = 0; i < passengers.length; i++) {
+    const p = passengers[i];
+    if (!p.name.trim() || p.name.trim().length < 2) {
+      setFormError(`Passenger ${i + 1}: please enter a full name`);
+      return;
+    }
+
+    // Passenger 1 (or single-seat) always needs a phone
+    // Passenger 2 can leave phone blank — we'll use passenger 1's phone
+    const phoneRequired = i === 0 || !isMulti;
+
+    if (phoneRequired && !p.phone.trim()) {
+      setFormError(`Passenger ${i + 1}: please enter a phone number`);
+      return;
+    }
+
+    if (p.phone.trim()) {
       const cleaned = p.phone.trim().replace(/\s/g, '');
       if (!/^\+?[0-9]{9,13}$/.test(cleaned)) {
         setFormError(`Passenger ${i + 1}: phone number looks wrong. Use 0712345678 or +254712345678`);
         return;
       }
     }
+  }
 
     setSubmitting(true);
 
     // Build the batch payload
-    const batchPayload = passengers.map((p, i) => ({
-      seat_id: seatIds[i],
-      passenger_name: p.name.trim(),
-      passenger_phone: p.phone.trim().replace(/\s/g, '')
-    }));
+    const primaryPhone = passengers[0].phone.trim().replace(/\s/g, '');
+    const batchPayload = passengers.map((p, i) => {
+      const phoneEntered = p.phone.trim().replace(/\s/g, '');
+      const usesPrimaryPhone = !phoneEntered && i > 0;
+
+      return {
+        seat_id: seatIds[i],
+        passenger_name: p.name.trim(),
+        passenger_phone: usesPrimaryPhone ? primaryPhone : phoneEntered,
+        // If passenger 2 shares primary phone, override the users.full_name display
+        passenger_name_override: usesPrimaryPhone ? p.name.trim() : null
+      };
+    });
 
     const { data, error: bookingError } = await supabase.rpc('create_bookings_batch', {
       p_trip_id: tripId,
@@ -266,6 +282,14 @@ export default function ConfirmPage() {
       setSubmitting(false);
       return;
     }
+
+    // Fire booking confirmation SMS (fire-and-forget — we redirect regardless)
+    const bookingIds = data.bookings.map(b => b.id);
+    fetch('/api/sms/send-booking-confirmation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_ids: bookingIds })
+    }).catch(err => console.error('SMS send failed:', err));
 
     // Multi-booking → land on my-bookings (per session 9 decision)
     // Single-booking → land on boarding pass (preserves existing flow)
@@ -512,13 +536,18 @@ function PassengerForm({ idx, seatId, passenger, isSignedIn, isMulti, user, onUp
       </div>
 
       <div className="cf-field">
-        <label htmlFor={`phone-${idx}`} className="cf-label">Phone number</label>
+        <label htmlFor={`phone-${idx}`} className="cf-label">
+          Phone number
+          {isMulti && idx === 1 && (
+            <span className="cf-optional-tag"> · optional</span>
+          )}
+        </label>
         <input
           id={`phone-${idx}`}
           type="tel"
           value={passenger.phone}
           onChange={(e) => onUpdate('phone', e.target.value)}
-          placeholder="0712 345 678"
+          placeholder={isMulti && idx === 1 ? "Leave blank if they don't have one" : "0712 345 678"}
           autoComplete={idx === 0 ? 'tel' : 'off'}
           inputMode="tel"
           disabled={disabled || lockedFromAccount}
@@ -527,9 +556,25 @@ function PassengerForm({ idx, seatId, passenger, isSignedIn, isMulti, user, onUp
           {lockedFromAccount
             ? 'From your account · boarding pass goes here'
             : idx === 1
-              ? "This passenger's boarding pass goes here"
+              ? (passenger.phone.trim()
+                ? "This passenger's boarding pass goes here"
+                : "No phone — you'll get both boarding pass links on your number")
               : "We'll send the boarding pass here"}
         </div>
+
+        {isMulti && idx === 1 && !passenger.phone.trim() && passenger.name.trim() && (
+          <div className="cf-passenger2-warn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>
+              <strong>{passenger.name.trim()}</strong> won't get SMS or a boarding pass link.
+              Save both boarding passes from your account and share theirs manually.
+            </span>
+          </div>
+        )}
       </div>
 
       {showToggle && (

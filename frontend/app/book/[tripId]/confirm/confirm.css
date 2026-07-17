@@ -596,3 +596,42 @@
   color: var(--muted);
   font-weight: 600;
 }
+
+.cf-optional-tag {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.cf-passenger2-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(201, 123, 30, 0.08);
+  border: 1px solid rgba(201, 123, 30, 0.3);
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  animation: cf-warn-in 0.2s ease;
+}
+
+@keyframes cf-warn-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: none; }
+}
+
+.cf-passenger2-warn svg {
+  color: var(--amber);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cf-passenger2-warn strong {
+  color: var(--ink);
+  font-weight: 600;
+}
